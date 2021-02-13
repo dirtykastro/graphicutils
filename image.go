@@ -2,7 +2,6 @@ package graphicutils
 
 import (
 	"errors"
-	"fmt"
 	"image"
 	"image/png"
 	"math"
@@ -61,32 +60,40 @@ func GetPixelValue(img image.Image, pt image.Point) (pixel Pixel, err error) {
 }
 
 func BlendPixel(fgPixel Pixel, bgPixel Pixel) (pixel Pixel) {
+	if fgPixel.A == 255 {
+
+		pixel = fgPixel
+		return
+
+	} else if fgPixel.A == 0 {
+
+		pixel = bgPixel
+		return
+	}
 
 	fgAlpha := float64(fgPixel.A)
 	bgAlpha := float64(bgPixel.A)
 
-	r := fgPixel.R
-	g := fgPixel.G
-	b := fgPixel.B
-
 	alpha := fgAlpha + ((255 - fgAlpha) * (bgAlpha / 255))
 
-	fmt.Println(alpha)
-
-	pixel.R = uint8(r)
-	pixel.G = uint8(g)
-	pixel.B = uint8(b)
+	pixel.R = blendColor(fgPixel.R, fgPixel.A, bgPixel.R, bgPixel.A)
+	pixel.G = blendColor(fgPixel.G, fgPixel.A, bgPixel.G, bgPixel.A)
+	pixel.B = blendColor(fgPixel.B, fgPixel.A, bgPixel.B, bgPixel.A)
 	pixel.A = uint8(math.Round(alpha))
 
 	return
 }
 
-func addColor(fgColor, fgAlpha, bgColor, bgAlpha uint8) (finalColor uint8) {
-	return fgColor
+func blendColor(fgColor, fgAlpha, bgColor, bgAlpha uint8) (finalColor uint8) {
 
-	difference := int(fgColor) - int(bgColor)
+	alpha := float64(fgAlpha) / 255
 
-	finalColor = uint8(int(fgColor) + (difference * (255 - int(fgAlpha))))
+	fgColorFloat := float64(fgColor)
+	bgColorFloat := float64(bgColor)
+
+	out := alpha*fgColorFloat + (1-alpha)*bgColorFloat
+
+	finalColor = uint8(math.Round(out))
 
 	return
 }
