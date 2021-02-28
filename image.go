@@ -97,3 +97,25 @@ func blendColor(fgColor, fgAlpha, bgColor, bgAlpha uint8) (finalColor uint8) {
 
 	return
 }
+
+func GetImageDimensions(imagePath string) (width int, height int, err error) {
+	file, file_err := os.Open(imagePath)
+	if file_err != nil {
+		err = file_err
+		return
+	}
+
+	image, _, image_err := image.DecodeConfig(file)
+
+	file.Close()
+
+	if image_err != nil {
+		err = image_err
+		return
+	}
+
+	width = image.Width
+	height = image.Height
+
+	return
+}
