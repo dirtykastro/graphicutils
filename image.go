@@ -3,8 +3,11 @@ package graphicutils
 import (
 	"errors"
 	"image"
+	"image/gif"
+	"image/jpeg"
 	"image/png"
 	"math"
+	"net/http"
 	"os"
 )
 
@@ -35,7 +38,45 @@ func DecodeImage(filePath string) (img image.Image, err error) {
 		return
 	}
 
-	img, err = png.Decode(file)
+	mime, mimeErr := getContentTypeFromFile(file)
+	if mimeErr != nil {
+		return
+	}
+
+	if mime == "image/jpeg" {
+		img, err = jpeg.Decode(file)
+	} else if mime == "image/gif" {
+		img, err = gif.Decode(file)
+	} else if mime == "image/png" {
+		img, err = png.Decode(file)
+	}
+
+	return
+}
+
+func getContentTypeFromFile(file *os.File) (mime string, err error) {
+	fileBuffer := make([]byte, 512)
+	_, readErr := file.Read(fileBuffer)
+
+	if readErr != nil {
+		return
+	}
+
+	mime = http.DetectContentType(fileBuffer)
+
+	return
+}
+
+// Get MIME type of file
+func GetContentType(path string) (mime string, err error) {
+	file, fileErr := os.Open(path)
+	if fileErr != nil {
+		return
+	}
+
+	mime, err = getContentTypeFromFile(file)
+
+	file.Close()
 
 	return
 }
